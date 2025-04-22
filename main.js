@@ -2,6 +2,8 @@
 const wrapper = document.querySelector('.wrapper');
 const inputText = document.querySelector('input');
 const btn = document.querySelector('button');
+const downloadBtn = document.getElementById('downloadBtn');
+const iosInstructions = document.getElementById('ios-instructions');
 
 // Check if there's a saved location in localStorage
 document.addEventListener('DOMContentLoaded', () => {
@@ -10,6 +12,9 @@ document.addEventListener('DOMContentLoaded', () => {
         inputText.value = savedLocation;
         fetchWeather();
     }
+    
+    // PWA installation logic for the download button
+    setupInstallButton();
 });
 
 // Fetch weather data from API
@@ -41,7 +46,7 @@ const fetchWeather = () => {
         .then(data => {
             // Save location to localStorage
             localStorage.setItem('weatherLocation', inputText.value);
-
+            
             displayWeather(data);
         })
         .catch(error => {
@@ -73,7 +78,59 @@ const displayError = (message) => {
     wrapper.innerHTML = `<p style="color: red;">Error: ${message}</p>`;
 };
 
-// Event listeners
+// Set up PWA installation button
+const setupInstallButton = () => {
+    // Variables for PWA installation
+    let deferredPrompt;
+
+    // Check if device is iOS
+    const isIOS = () => {
+        return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    };
+
+    if (isIOS()) {
+        // For iOS devices, show instructions for Add to Home Screen
+        downloadBtn.textContent = "Install on iOS";
+        downloadBtn.addEventListener('click', () => {
+            iosInstructions.style.display = 'block';
+        });
+    } else {
+        // For other platforms, use the standard install prompt
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // Prevent Chrome 67 and earlier from automatically showing the prompt
+            e.preventDefault();
+            // Stash the event so it can be triggered later
+            deferredPrompt = e;
+        });
+
+        downloadBtn.addEventListener('click', () => {
+            if (deferredPrompt) {
+                // Show the install prompt
+                deferredPrompt.prompt();
+                // Wait for the user to respond to the prompt
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('User accepted the install prompt');
+                    } else {
+                        console.log('User dismissed the install prompt');
+                    }
+                    deferredPrompt = null;
+                });
+            } else {
+                alert("Installation not available. You may already have installed the app or your browser doesn't support PWA installation.");
+            }
+        });
+    }
+
+    // Hide the install button when the PWA is already installed
+    window.addEventListener('appinstalled', (evt) => {
+        downloadBtn.textContent = "App Installed";
+        downloadBtn.disabled = true;
+        console.log('Weather PWA was installed');
+    });
+};
+
+// Event listeners for weather search
 btn.addEventListener("click", fetchWeather);
 
 // Also search when Enter key is pressed

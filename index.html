@@ -33,9 +33,15 @@
         </div>
 
         <p class="install-instructions">
-            To install: Click the install icon in your browser's address bar (desktop) or
-            Add to Home Screen in your browser menu (mobile)
+            Click the button below to download this app:
         </p>
+<!-- Download button for both desktop and mobile -->
+<div class="download-container">
+    <button id="downloadBtn" class="download-button">Download App</button>
+    <div id="ios-instructions" class="ios-instructions" style="display: none;">
+        <p>On iOS: Tap the share icon <span class="ios-share-icon">↑</span> and select "Add to Home Screen"</p>
+    </div>
+</div>
     </div>
 
     <script src="./main.js"></script>
@@ -53,6 +59,60 @@
                     });
             });
         }
+
+    // PWA download functionality
+    let deferredPrompt;
+    const downloadBtn = document.getElementById('downloadBtn');
+    const iosInstructions = document.getElementById('ios-instructions');
+
+    // Check if device is iOS
+    const isIOS = () => {
+        return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    };
+
+    // Show appropriate install instructions based on platform
+    document.addEventListener('DOMContentLoaded', () => {
+        if (isIOS()) {
+            // For iOS devices, show instructions for Add to Home Screen
+            downloadBtn.textContent = "Install on iOS";
+            downloadBtn.addEventListener('click', () => {
+                iosInstructions.style.display = 'block';
+            });
+        } else {
+            // For other platforms, use the standard install prompt
+            window.addEventListener('beforeinstallprompt', (e) => {
+                // Prevent Chrome 67 and earlier from automatically showing the prompt
+                e.preventDefault();
+                // Stash the event so it can be triggered later
+                deferredPrompt = e;
+            });
+
+            downloadBtn.addEventListener('click', () => {
+                if (deferredPrompt) {
+                    // Show the install prompt
+                    deferredPrompt.prompt();
+                    // Wait for the user to respond to the prompt
+                    deferredPrompt.userChoice.then((choiceResult) => {
+                        if (choiceResult.outcome === 'accepted') {
+                            console.log('User accepted the install prompt');
+                        } else {
+                            console.log('User dismissed the install prompt');
+                        }
+                        deferredPrompt = null;
+                    });
+                } else {
+                    alert("Installation not available. You may already have installed the app or your browser doesn't support PWA installation.");
+                }
+            });
+        }
+    });
+
+    // Hide the install button when the PWA is already installed
+    window.addEventListener('appinstalled', (evt) => {
+        downloadBtn.textContent = "App Installed";
+        downloadBtn.disabled = true;
+        console.log('Weather PWA was installed');
+    });
     </script>
 </body>
 
