@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather PWA</title>
+
+    <!-- PWA requirements -->
+    <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#4285f4">
+    <meta name="description" content="A simple weather application">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="Weather PWA">
+    <link rel="apple-touch-icon" href="./icons/icon-152x152.png">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="./style.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <h1 class="app-title">Weather App</h1>
+
+        <div class="search-container">
+            <input type="text" placeholder="Enter city name">
+            <button type="button">Search</button>
+        </div>
+
+        <div class="wrapper">
+            <!-- Weather data will be displayed here -->
+        </div>
+
+        <p class="install-instructions">
+            To install: Click the install icon in your browser's address bar (desktop) or
+            Add to Home Screen in your browser menu (mobile)
+        </p>
+    </div>
+
+    <script src="./main.js"></script>
+
+    <!-- Register service worker -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(registration => {
+                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                    })
+                    .catch(err => {
+                        console.log('ServiceWorker registration failed: ', err);
+                    });
+            });
+        }
+    </script>
+</body>
+
+</html>
